@@ -1,5 +1,7 @@
 import pygame
 import sys
+import random
+import time
 
 # Initialisation de Pygame
 pygame.init()
@@ -7,25 +9,43 @@ pygame.init()
 # Définition des couleurs
 BLANC = (255, 255, 255)
 NOIR = (0, 0, 0)
+ROUGE = (255, 0, 0)
+VERT = (0, 255, 0)
+BLEU = (0, 0, 255)
 
 # Dimensions de la fenêtre
-largeur = 800
-hauteur = 600
+largeur = 1920
+hauteur = 1080
 
 # Création de la fenêtre
 fenetre = pygame.display.set_mode((largeur, hauteur))
 pygame.display.set_caption("Jeu Pygame")
 
-# Position initiale du cercle
-x = largeur // 2
-y = hauteur // 2
+# Position initiale du cercle joueur
+x_joueur = largeur // 2
+y_joueur = hauteur // 2
+rayon_joueur = 20
 
-# Variables de déplacement
+# Variables de déplacement du joueur
 deplacement_x = 0
 deplacement_y = 0
 
-# Boucle principale du jeu
+# Création des ronds colorés
+ronds = []
+nbrRonds=random.randint(10,20)
+for _ in range(nbrRonds):
+    rayon = random.randint(10, 30)
+    x = random.randint(rayon, largeur - rayon)
+    y = random.randint(rayon, hauteur - rayon)
+    couleur = random.choice([ROUGE, VERT, BLEU])
+    rond = {'x': x, 'y': y, 'rayon': rayon, 'couleur': couleur}
+    ronds.append(rond)
 
+# Compteur
+score = 0
+
+
+# Boucle principale du jeu
 vitesse=0.2
 while True:
     # Gestion des événements
@@ -50,15 +70,34 @@ while True:
             elif event.key == pygame.K_UP or event.key == pygame.K_DOWN:
                 deplacement_y = 0
 
-    # Mise à jour de la position du cercle
-    x += deplacement_x
-    y += deplacement_y
+    # Mise à jour de la position du joueur
+    x_joueur += deplacement_x
+    y_joueur += deplacement_y
+
+    # Vérification des collisions avec les ronds
+    for rond in ronds:
+        distance = ((x_joueur - rond['x']) ** 2 + (y_joueur - rond['y']) ** 2) ** 0.5
+        if distance < rayon_joueur + rond['rayon']:
+            ronds.remove(rond)
+            score += 1
+            vitesse += 0.1
 
     # Effacement de l'écran
     fenetre.fill(BLANC)
 
-    # Dessin du cercle
-    pygame.draw.circle(fenetre, NOIR, (x, y), 20)
+    # Dessin des ronds
+    for rond in ronds:
+        pygame.draw.circle(fenetre, rond['couleur'], (rond['x'], rond['y']), rond['rayon'])
+
+    # Dessin du joueur
+    pygame.draw.circle(fenetre, NOIR, (x_joueur, y_joueur), rayon_joueur)
+
+    # Affichage du score
+    font = pygame.font.Font(None, 36)
+    texte = font.render("Score : {}".format(score), True, NOIR)
+    fenetre.blit(texte, (10, 10))
 
     # Rafraîchissement de l'écran
     pygame.display.flip()
+
+   
